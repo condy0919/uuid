@@ -33,7 +33,7 @@ impl FromStr for UUID {
             // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
             45 => {
                 if !s.bytes().zip("urn:uuid:".bytes())
-                     .fold(true, |acc, (ch, exp)| acc && (ch | 0x20) == exp) {
+                     .all(|(ch, exp)| (ch | 0x20) == exp) {
                     return Err(InvalidUUIDString);
                 }
 
