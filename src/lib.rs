@@ -48,11 +48,8 @@ impl FromStr for UUID {
                 let bs = s.as_bytes();
 
                 for i in 0..16 {
-                    if let Ok(v) = xtob(bs[2 * i], bs[2 * i + 1]) {
-                        uuid[i] = v;
-                    } else {
-                        return Err(InvalidUUIDString);
-                    }
+                    let v = xtob(bs[2 * i], bs[2 * i + 1]).map_err(|_| InvalidUUIDString)?;
+                    uuid[i] = v;
                 }
 
                 return Ok(UUID(uuid));
@@ -66,11 +63,8 @@ impl FromStr for UUID {
             return Err(InvalidUUIDString);
         }
         for (i, &val) in [0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34].iter().enumerate() {
-            if let Ok(v) = xtob(bs[val], bs[val + 1]) {
-                uuid[i] = v;
-            } else {
-                return Err(InvalidUUIDString);
-            }
+            let v = xtob(bs[val], bs[val + 1]).map_err(|_| InvalidUUIDString)?;
+            uuid[i] = v;
         }
         Ok(UUID(uuid))
     }
