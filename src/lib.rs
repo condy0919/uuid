@@ -1,6 +1,9 @@
 use std::str::FromStr;
-use std::string::ToString;
+use std::fmt;
+use std::mem;
+use std::error;
 
+#[derive(PartialEq, Eq, Hash)]
 pub struct UUID([u8; 16]);
 
 #[derive(Debug, PartialEq)]
@@ -30,9 +33,17 @@ impl FromStr for UUID {
 
             // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
             45 => {
-                if (&s[..9]).to_lowercase() != "urn:uuid:" {
+                let first_8bytes_eq = unsafe {
+                    let urn: u64 = mem::transmute_copy(&*s.as_ptr());
+                    let exp: u64 = mem::transmute_copy(&*"urn:uuid".as_ptr());
+
+                    (urn | 0x20202020_20202020) == exp
+                };
+
+                if !first_8bytes_eq || s.as_bytes()[8] != b':' {
                     return Err(InvalidUUIDString);
                 }
+
                 &s[9..]
             },
 
@@ -44,11 +55,11 @@ impl FromStr for UUID {
                 let bs = s.as_bytes();
 
                 for i in 0..16 {
-                    let (v, ok) = xtob(bs[2 * i], bs[2 * i + 1]);
-                    if !ok {
+                    if let Ok(v) = xtob(bs[2 * i], bs[2 * i + 1]) {
+                        uuid[i] = v;
+                    } else {
                         return Err(InvalidUUIDString);
                     }
-                    uuid[i] = v;
                 }
 
                 return Ok(UUID(uuid));
@@ -58,25 +69,23 @@ impl FromStr for UUID {
         };
 
         let bs = s.as_bytes();
-        if char::from(bs[8]) != '-' || char::from(bs[13]) != '-' ||
-            char::from(bs[18]) != '-' || char::from(bs[23]) != '-' {
+        if bs[8] != b'-' || bs[13] != b'-' || bs[18] != b'-' || bs[23] != b'-' {
             return Err(InvalidUUIDString);
         }
-        for (i, val) in [0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34].iter().enumerate() {
-            let (v, ok) = xtob(bs[*val], bs[*val + 1]);
-            if !ok {
+        for (i, &val) in [0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34].iter().enumerate() {
+            if let Ok(v) = xtob(bs[val], bs[val + 1]) {
+                uuid[i] = v;
+            } else {
                 return Err(InvalidUUIDString);
             }
-            uuid[i] = v;
         }
         Ok(UUID(uuid))
     }
 }
 
-impl ToString for UUID {
-    fn to_string(&self) -> String {
-        // TODO use snprintf
-        format!("{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+impl fmt::Display for UUID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
                 self.0[0],
                 self.0[1],
                 self.0[2],
@@ -115,8 +124,8 @@ impl UUID {
     }
 }
 
-impl ToString for Variant {
-    fn to_string(&self) -> String {
+impl fmt::Display for Variant {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             Variant::Invalid => "Invalid",
             Variant::RFC4122 => "RFC4122",
@@ -124,13 +133,29 @@ impl ToString for Variant {
             Variant::Microsoft => "Microsoft",
             Variant::Future => "Future",
         };
-        s.to_owned()
+        write!(f, "{}", s)
     }
 }
 
-impl ToString for Version {
-    fn to_string(&self) -> String {
-        format!("VERSION_{}", self.0)
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "VERSION_{}", self.0)
+    }
+}
+
+impl fmt::Display for InvalidUUIDString {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "invalid uuid string")
+    }
+}
+
+impl error::Error for InvalidUUIDString {
+    fn description(&self) -> &str {
+        "123"
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
     }
 }
 
@@ -153,10 +178,15 @@ const XVALUES: [u8; 256] = [
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 ];
 
-fn xtob(a: u8, b: u8) -> (u8, bool) {
+fn xtob(a: u8, b: u8) -> Result<u8, u8> {
     let hi = XVALUES[a as usize];
     let lo = XVALUES[b as usize];
-    ((hi << 4) | lo, hi != 255 && lo != 255)
+    let result = (hi << 4) | lo;
+
+    if hi == 255 || lo == 255 {
+        return Err(result);
+    }
+    return Ok(result);
 }
 
 #[cfg(test)]
