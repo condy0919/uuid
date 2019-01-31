@@ -1,6 +1,5 @@
 use std::str::FromStr;
 use std::fmt;
-use std::mem;
 use std::error;
 
 #[derive(PartialEq, Eq, Hash)]
@@ -33,14 +32,8 @@ impl FromStr for UUID {
 
             // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
             45 => {
-                let first_8bytes_eq = unsafe {
-                    let urn: u64 = mem::transmute_copy(&*s.as_ptr());
-                    let exp: u64 = mem::transmute_copy(&*"urn:uuid".as_ptr());
-
-                    (urn | 0x20202020_20202020) == exp
-                };
-
-                if !first_8bytes_eq || s.as_bytes()[8] != b':' {
+                if !s.bytes().zip("urn:uuid:".bytes())
+                     .fold(true, |acc, (ch, exp)| acc && (ch | 0x20) == exp) {
                     return Err(InvalidUUIDString);
                 }
 
