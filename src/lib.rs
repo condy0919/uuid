@@ -138,7 +138,7 @@ impl fmt::Display for InvalidUUIDString {
 
 impl error::Error for InvalidUUIDString {
     fn description(&self) -> &str {
-        "123"
+        "invalid uuid string"
     }
 
     fn cause(&self) -> Option<&error::Error> {
