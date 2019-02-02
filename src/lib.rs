@@ -3,7 +3,7 @@ use std::fmt;
 use std::error;
 
 #[derive(PartialEq, Eq, Hash)]
-pub struct UUID([u8; 16]);
+pub struct Uuid([u8; 16]);
 
 #[derive(Debug, PartialEq)]
 pub struct Version(u8);
@@ -18,10 +18,10 @@ pub enum Variant {
 }
 
 #[derive(Debug, Clone)]
-pub struct InvalidUUIDString;
+pub struct InvalidUuidString;
 
-impl FromStr for UUID {
-    type Err = InvalidUUIDString;
+impl FromStr for Uuid {
+    type Err = InvalidUuidString;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut uuid: [u8; 16] = Default::default();
@@ -34,7 +34,7 @@ impl FromStr for UUID {
             45 => {
                 if !s.bytes().zip("urn:uuid:".bytes())
                      .all(|(ch, exp)| (ch | 0x20) == exp) {
-                    return Err(InvalidUUIDString);
+                    return Err(InvalidUuidString);
                 }
 
                 &s[9..]
@@ -48,29 +48,29 @@ impl FromStr for UUID {
                 let bs = s.as_bytes();
 
                 for i in 0..16 {
-                    let v = xtob(bs[2 * i], bs[2 * i + 1]).map_err(|_| InvalidUUIDString)?;
+                    let v = xtob(bs[2 * i], bs[2 * i + 1]).map_err(|_| InvalidUuidString)?;
                     uuid[i] = v;
                 }
 
-                return Ok(UUID(uuid));
+                return Ok(Uuid(uuid));
             },
 
-            _ => return Err(InvalidUUIDString),
+            _ => return Err(InvalidUuidString),
         };
 
         let bs = s.as_bytes();
         if bs[8] != b'-' || bs[13] != b'-' || bs[18] != b'-' || bs[23] != b'-' {
-            return Err(InvalidUUIDString);
+            return Err(InvalidUuidString);
         }
         for (i, &val) in [0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34].iter().enumerate() {
-            let v = xtob(bs[val], bs[val + 1]).map_err(|_| InvalidUUIDString)?;
+            let v = xtob(bs[val], bs[val + 1]).map_err(|_| InvalidUuidString)?;
             uuid[i] = v;
         }
-        Ok(UUID(uuid))
+        Ok(Uuid(uuid))
     }
 }
 
-impl fmt::Display for UUID {
+impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
                 self.0[0],
@@ -92,8 +92,8 @@ impl fmt::Display for UUID {
     }
 }
 
-impl UUID {
-    fn variant(&self) -> Variant {
+impl Uuid {
+    pub fn variant(&self) -> Variant {
         let v = self.0[8];
 
         if v & 0xc0 == 0x80 {
@@ -106,7 +106,7 @@ impl UUID {
         return Variant::Reserved;
     }
 
-    fn version(&self) -> Version {
+    pub fn version(&self) -> Version {
         Version(self.0[6] >> 4)
     }
 }
@@ -130,13 +130,13 @@ impl fmt::Display for Version {
     }
 }
 
-impl fmt::Display for InvalidUUIDString {
+impl fmt::Display for InvalidUuidString {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "invalid uuid string")
     }
 }
 
-impl error::Error for InvalidUUIDString {
+impl error::Error for InvalidUuidString {
     fn description(&self) -> &str {
         "invalid uuid string"
     }
@@ -193,33 +193,33 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert!(UUID::from_str(NAME_SPACE_DNS).is_ok());
-        assert!(UUID::from_str(NAME_SPACE_DNS_WITH_URN).is_ok());
-        assert!(UUID::from_str(NAME_SPACE_DNS_WITH_BRACE).is_ok());
-        assert!(UUID::from_str(NAME_SPACE_DNS_WITHOUT_SLASH).is_ok());
+        assert!(Uuid::from_str(NAME_SPACE_DNS).is_ok());
+        assert!(Uuid::from_str(NAME_SPACE_DNS_WITH_URN).is_ok());
+        assert!(Uuid::from_str(NAME_SPACE_DNS_WITH_BRACE).is_ok());
+        assert!(Uuid::from_str(NAME_SPACE_DNS_WITHOUT_SLASH).is_ok());
 
-        assert!(UUID::from_str(INVALID_UUID1).is_err());
-        assert!(UUID::from_str(INVALID_UUID2).is_err());
-        assert!(UUID::from_str(INVALID_UUID3).is_err());
-        assert!(UUID::from_str(INVALID_UUID4).is_err());
-        assert!(UUID::from_str(INVALID_UUID5).is_err());
+        assert!(Uuid::from_str(INVALID_UUID1).is_err());
+        assert!(Uuid::from_str(INVALID_UUID2).is_err());
+        assert!(Uuid::from_str(INVALID_UUID3).is_err());
+        assert!(Uuid::from_str(INVALID_UUID4).is_err());
+        assert!(Uuid::from_str(INVALID_UUID5).is_err());
     }
 
     #[test]
     fn test_to_string() {
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS).unwrap().to_string(), NAME_SPACE_DNS);
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS_WITH_URN).unwrap().to_string(), NAME_SPACE_DNS);
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS_WITH_BRACE).unwrap().to_string(), NAME_SPACE_DNS);
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS_WITHOUT_SLASH).unwrap().to_string(), NAME_SPACE_DNS);
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS).unwrap().to_string(), NAME_SPACE_DNS);
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS_WITH_URN).unwrap().to_string(), NAME_SPACE_DNS);
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS_WITH_BRACE).unwrap().to_string(), NAME_SPACE_DNS);
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS_WITHOUT_SLASH).unwrap().to_string(), NAME_SPACE_DNS);
     }
 
     #[test]
     fn test_version() {
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS).unwrap().version(), Version(1));
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS).unwrap().version(), Version(1));
     }
 
     #[test]
     fn test_variant() {
-        assert_eq!(UUID::from_str(NAME_SPACE_DNS).unwrap().variant(), Variant::RFC4122);
+        assert_eq!(Uuid::from_str(NAME_SPACE_DNS).unwrap().variant(), Variant::RFC4122);
     }
 }
