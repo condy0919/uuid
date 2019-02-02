@@ -1,6 +1,7 @@
 use std::convert::From;
 use std::fs;
 use std::path::Path;
+use std::fmt;
 
 use crate::util::xtob;
 
@@ -32,6 +33,14 @@ impl Node {
 
     pub fn id(&self) -> [u8; 6] {
         self.0
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let xs = self.0;
+        write!(f, "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                   xs[0], xs[1], xs[2], xs[3], xs[4], xs[5])
     }
 }
 
