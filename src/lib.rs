@@ -2,14 +2,14 @@ use std::str::FromStr;
 use std::fmt;
 use std::error;
 
-mod util;
 pub mod node;
 pub mod v1;
 pub mod v3;
 pub mod v4;
 pub mod v5;
 
-use crate::util::xtob;
+mod util;
+use util::xtob;
 
 
 #[derive(PartialEq, Eq, Hash)]
@@ -28,10 +28,10 @@ pub enum Variant {
 }
 
 #[derive(Debug, Clone)]
-pub struct InvalidUuidString;
+pub struct InvalidUuid;
 
 impl FromStr for Uuid {
-    type Err = InvalidUuidString;
+    type Err = InvalidUuid;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut uuid: [u8; 16] = Default::default();
@@ -44,7 +44,7 @@ impl FromStr for Uuid {
             45 => {
                 if !s.bytes().zip("urn:uuid:".bytes())
                      .all(|(ch, exp)| (ch | 0x20) == exp) {
-                    return Err(InvalidUuidString);
+                    return Err(InvalidUuid);
                 }
 
                 &s[9..]
@@ -58,22 +58,22 @@ impl FromStr for Uuid {
                 let bs = s.as_bytes();
 
                 for i in 0..16 {
-                    let v = xtob(bs[2 * i], bs[2 * i + 1]).map_err(|_| InvalidUuidString)?;
+                    let v = xtob(bs[2 * i], bs[2 * i + 1]).map_err(|_| InvalidUuid)?;
                     uuid[i] = v;
                 }
 
                 return Ok(Uuid(uuid));
             },
 
-            _ => return Err(InvalidUuidString),
+            _ => return Err(InvalidUuid),
         };
 
         let bs = s.as_bytes();
         if bs[8] != b'-' || bs[13] != b'-' || bs[18] != b'-' || bs[23] != b'-' {
-            return Err(InvalidUuidString);
+            return Err(InvalidUuid);
         }
         for (i, &val) in [0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34].iter().enumerate() {
-            let v = xtob(bs[val], bs[val + 1]).map_err(|_| InvalidUuidString)?;
+            let v = xtob(bs[val], bs[val + 1]).map_err(|_| InvalidUuid)?;
             uuid[i] = v;
         }
         Ok(Uuid(uuid))
@@ -140,13 +140,13 @@ impl fmt::Display for Version {
     }
 }
 
-impl fmt::Display for InvalidUuidString {
+impl fmt::Display for InvalidUuid{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "invalid uuid string")
     }
 }
 
-impl error::Error for InvalidUuidString {
+impl error::Error for InvalidUuid{
     fn description(&self) -> &str {
         "invalid uuid string"
     }
