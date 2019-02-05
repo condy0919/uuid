@@ -1,10 +1,6 @@
 use super::*;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[path = "node.rs"]
-pub mod node;
-use node::Node;
-
 
 #[allow(non_upper_case_globals)]
 const lillian: u64 = 2299160; // Julian day of 15 Oct 1582
@@ -60,10 +56,10 @@ impl Uuid {
         let time_low = (now & 0xffffffff) as u32;
         let time_mid = ((now >> 32) & 0xffff) as u16;
         let time_hi = ((now >> 48) & 0x0fff) as u16 | 0x1000; // Version 1
-        uuid[0..].copy_from_slice(&time_low.to_be_bytes());
-        uuid[4..].copy_from_slice(&time_mid.to_be_bytes());
-        uuid[6..].copy_from_slice(&time_hi.to_be_bytes());
-        uuid[8..].copy_from_slice(&seq.to_be_bytes());
+        uuid[0..4].copy_from_slice(&time_low.to_be_bytes());
+        uuid[4..6].copy_from_slice(&time_mid.to_be_bytes());
+        uuid[6..8].copy_from_slice(&time_hi.to_be_bytes());
+        uuid[8..10].copy_from_slice(&(seq as u16).to_be_bytes());
         uuid[10..].copy_from_slice(&node.id());
 
         Uuid(uuid)

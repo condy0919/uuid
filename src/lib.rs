@@ -2,7 +2,12 @@ use std::str::FromStr;
 use std::fmt;
 use std::error;
 
+pub mod node;
+pub use node::Node;
+
 pub mod v1;
+pub use v1::{Context, TimeClockSequence};
+
 pub mod v3;
 pub mod v4;
 pub mod v5;
