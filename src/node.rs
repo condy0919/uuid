@@ -3,8 +3,11 @@ use std::fs;
 use std::path::Path;
 use std::fmt;
 
-use crate::util::xtob;
+#[path = "util.rs"]
+mod util;
+use util::xtob;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Node([u8; 6]);
 
 impl From<[u8; 6]> for Node {

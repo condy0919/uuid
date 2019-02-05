@@ -2,7 +2,6 @@ use std::str::FromStr;
 use std::fmt;
 use std::error;
 
-pub mod node;
 pub mod v1;
 pub mod v3;
 pub mod v4;
@@ -12,7 +11,7 @@ mod util;
 use util::xtob;
 
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Uuid([u8; 16]);
 
 #[derive(Debug, PartialEq)]
@@ -103,6 +102,15 @@ impl fmt::Display for Uuid {
 }
 
 impl Uuid {
+    pub const NAMESPACE_DNS: Self = Self([0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    pub const NAMESPACE_URL: Self = Self([0x6b, 0xa7, 0xb8, 0x11, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    pub const NAMESPACE_OID: Self = Self([0x6b, 0xa7, 0xb8, 0x12, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    pub const NAMESPACE_X500: Self = Self([0x6b, 0xa7, 0xb8, 0x14, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+
+    pub fn nil() -> Self {
+        Uuid([0; 16])
+    }
+
     pub fn variant(&self) -> Variant {
         let v = self.0[8];
 
@@ -140,13 +148,13 @@ impl fmt::Display for Version {
     }
 }
 
-impl fmt::Display for InvalidUuid{
+impl fmt::Display for InvalidUuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "invalid uuid string")
     }
 }
 
-impl error::Error for InvalidUuid{
+impl error::Error for InvalidUuid {
     fn description(&self) -> &str {
         "invalid uuid string"
     }
@@ -183,6 +191,11 @@ mod tests {
         assert!(Uuid::from_str(INVALID_UUID3).is_err());
         assert!(Uuid::from_str(INVALID_UUID4).is_err());
         assert!(Uuid::from_str(INVALID_UUID5).is_err());
+    }
+
+    #[test]
+    fn test_predefined_uuid() {
+        assert_eq!(Uuid::NAMESPACE_DNS.to_string(), NAME_SPACE_DNS);
     }
 
     #[test]
