@@ -7,6 +7,7 @@ use std::fmt;
 mod util;
 use util::xtob;
 
+/// An IEEE 802 MAC address
 #[derive(Debug, Clone, Copy)]
 pub struct Node([u8; 6]);
 
@@ -17,6 +18,7 @@ impl From<[u8; 6]> for Node {
 }
 
 impl Node {
+    /// Creates a node with specified interface name
     #[cfg(target_os = "linux")]
     pub fn new(interface: &str) -> Self {
         let dir = "/sys/class/net";
@@ -54,6 +56,6 @@ mod tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn test_lo_nodeid() {
-        assert_eq!(Node::new("lo").id(), [0, 0, 0, 0, 0, 0]);
+        assert_eq!(Node::new("lo").id(), [0; 6]);
     }
 }
