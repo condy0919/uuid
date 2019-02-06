@@ -44,6 +44,26 @@ Md5     | Version 3: Md5 hash
 Random  | Version 4: Random
 Sha1    | Version 5: Sha1 hash
 
+## Benchmarks
+
+Lower is better.
+
+benchmark    | uuid-rs (ns) | yauuid (ns)
+-------------|--------------|-------------
+parse\_str   | 70.240       | **33.176**
+to\_string   | 107.48       | **75.387**
+new\_v1      | 6.1016       | 6.1530
+new\_v3      | 211.16       | 174.33
+new\_v4      | 29.946       | 30.557
+new\_v5      | 209.24       | 212.94
+
+The `parse_str` benchmark is 2x, and `to_string` is 1.5x.
+
+Run `cargo bench` to get the benchmark result.
+
+See `benches/bench.rs` for benchmark cases detail.
+
+
 ## References
 
  - [RFC 4122](http://tools.ietf.org/html/rfc4122)
