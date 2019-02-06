@@ -1,7 +1,22 @@
 [package]
-name = "uuid"
+name = "yauuid"
 version = "0.1.0"
 authors = ["condy <condy0919@gmail.com>"]
+description = "Yet another library to generate and parse UUIDs"
+license = "MIT"
+readme = "README.md"
 edition = "2018"
+repository = "https://github.com/condy0919/uuid"
 
 [dependencies]
+md-5 = "0.8.0"
+sha-1 = "0.8.1"
+rand = "0.6.5"
+libc = "0.2.48"
+
+[dev-dependencies]
+criterion = "0.2"
+
+[[bench]]
+name = "bench"
+harness = false
