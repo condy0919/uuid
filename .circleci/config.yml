@@ -1,0 +1,22 @@
+version: 2
+
+jobs:
+  build:
+    branches:
+      only:
+        - dev
+        - master
+        - ci
+    docker:
+      - image: "circleci/rust:1.32"
+    steps:
+      - checkout
+      - run:
+          name: Building
+          command: cargo build
+      - run:
+          name: Testing
+          command: cargo test
+      - run:
+          name: Benchmarking
+          command: cargo bench
