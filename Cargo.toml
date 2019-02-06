@@ -16,6 +16,7 @@ libc = "0.2.48"
 
 [dev-dependencies]
 criterion = "0.2"
+uuid = { version = "0.7.2", features = ["v1", "v3", "v4", "v5"] }
 
 [[bench]]
 name = "bench"
