@@ -22,11 +22,5 @@ fn benchmark_new_v4(c: &mut Criterion) {
     });
 }
 
-fn benchmark_uuidrs_from_str(c: &mut Criterion) {
-    c.bench_function("uuid-rs/uuid from_str", |b| {
-        b.iter(|| assert!(uuid::Uuid::parse_str(BENCHMARK_STRING).is_ok()))
-    });
-}
-
 criterion_group!(benches, benchmark_from_str, benchmark_uuidrs_from_str, benchmark_new_v4);
 criterion_main!(benches);
