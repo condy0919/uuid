@@ -19,10 +19,11 @@ extern crate sha1;
 extern crate rand;
 extern crate libc;
 
-use std::str::FromStr;
+use std::str::{FromStr, from_utf8_unchecked};
 use std::fmt;
 use std::error;
 use std::default;
+use std::char;
 
 pub mod node;
 pub use node::Node;
@@ -44,7 +45,7 @@ pub struct Uuid([u8; 16]);
 
 /// The version of the UUID
 #[derive(Debug, PartialEq, Eq)]
-pub struct Version(u8);
+pub struct Version(pub u8);
 
 /// The variant of the UUID
 #[derive(Debug, PartialEq, Eq)]
@@ -118,23 +119,50 @@ impl FromStr for Uuid {
 
 impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-                self.0[0],
-                self.0[1],
-                self.0[2],
-                self.0[3],
-                self.0[4],
-                self.0[5],
-                self.0[6],
-                self.0[7],
-                self.0[8],
-                self.0[9],
-                self.0[10],
-                self.0[11],
-                self.0[12],
-                self.0[13],
-                self.0[14],
-                self.0[15])
+        let xs = &self.0;
+        let from_digit = |u: u8| char::from_digit(u as u32, 16).unwrap() as u8;
+
+        let mut bs: [u8; 36] = [b'-'; 36];
+        bs[0] = from_digit((xs[0] & 0xf0) >> 4);
+        bs[1] = from_digit((xs[0] & 0x0f) >> 0);
+        bs[2] = from_digit((xs[1] & 0xf0) >> 4);
+        bs[3] = from_digit((xs[1] & 0x0f) >> 0);
+        bs[4] = from_digit((xs[2] & 0xf0) >> 4);
+        bs[5] = from_digit((xs[2] & 0x0f) >> 0);
+        bs[6] = from_digit((xs[3] & 0xf0) >> 4);
+        bs[7] = from_digit((xs[3] & 0x0f) >> 0);
+
+        bs[9] = from_digit((xs[4] & 0xf0) >> 4);
+        bs[10] = from_digit((xs[4] & 0x0f) >> 0);
+        bs[11] = from_digit((xs[5] & 0xf0) >> 4);
+        bs[12] = from_digit((xs[5] & 0x0f) >> 0);
+
+        bs[14] = from_digit((xs[6] & 0xf0) >> 4);
+        bs[15] = from_digit((xs[6] & 0x0f) >> 0);
+        bs[16] = from_digit((xs[7] & 0xf0) >> 4);
+        bs[17] = from_digit((xs[7] & 0x0f) >> 0);
+
+        bs[19] = from_digit((xs[8] & 0xf0) >> 4);
+        bs[20] = from_digit((xs[8] & 0x0f) >> 0);
+        bs[21] = from_digit((xs[9] & 0xf0) >> 4);
+        bs[22] = from_digit((xs[9] & 0x0f) >> 0);
+
+        bs[24] = from_digit((xs[10] & 0xf0) >> 4);
+        bs[25] = from_digit((xs[10] & 0x0f) >> 0);
+        bs[26] = from_digit((xs[11] & 0xf0) >> 4);
+        bs[27] = from_digit((xs[11] & 0x0f) >> 0);
+        bs[28] = from_digit((xs[12] & 0xf0) >> 4);
+        bs[29] = from_digit((xs[12] & 0x0f) >> 0);
+        bs[30] = from_digit((xs[13] & 0xf0) >> 4);
+        bs[31] = from_digit((xs[13] & 0x0f) >> 0);
+        bs[32] = from_digit((xs[14] & 0xf0) >> 4);
+        bs[33] = from_digit((xs[14] & 0x0f) >> 0);
+        bs[34] = from_digit((xs[15] & 0xf0) >> 4);
+        bs[35] = from_digit((xs[15] & 0x0f) >> 0);
+
+        unsafe {
+            f.write_str(from_utf8_unchecked(&bs))
+        }
     }
 }
 
@@ -205,20 +233,24 @@ impl Uuid {
 
 impl fmt::Display for Variant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            Variant::Invalid => "Invalid",
-            Variant::RFC4122 => "RFC4122",
-            Variant::Reserved => "Reserved",
-            Variant::Microsoft => "Microsoft",
-            Variant::Future => "Future",
-        };
-        write!(f, "{}", s)
+        match self {
+            Variant::Invalid => write!(f, "Invalid"),
+            Variant::RFC4122 => write!(f, "RFC4122"),
+            Variant::Reserved => write!(f, "Reserved"),
+            Variant::Microsoft => write!(f, "Microsoft"),
+            Variant::Future => write!(f, "Future"),
+        }
     }
 }
 
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "VERSION_{}", self.0)
+        let mut desc: [u8; 9] = [b'V', b'E', b'R', b'S', b'I', b'O', b'N', b'_', b'0'];
+        desc[8] += self.0;
+
+        unsafe {
+            f.write_str(from_utf8_unchecked(&desc))
+        }
     }
 }
 
