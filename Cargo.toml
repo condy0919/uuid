@@ -1,7 +1,11 @@
 [package]
-name = "uuid"
+name = "yauuid"
 version = "0.1.0"
 authors = ["condy <condy0919@gmail.com>"]
+description = "Yet another library to generate and parse UUIDs"
+license = "MIT"
+readme = "README.md"
 edition = "2018"
+repository = "https://github.com/condy0919/uuid"
 
 [dependencies]
