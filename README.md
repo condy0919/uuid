@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/condy0919/uuid.svg?style=svg)](https://circleci.com/gh/condy0919/uuid)
+
 # yauuid
 
 The uuid crate generates and parse UUIDs based on [RFC 4122](http://tools.ietf.org/html/rfc4122)
