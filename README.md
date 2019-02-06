@@ -59,6 +59,11 @@ new\_v5      | 209.24       | 212.94
 
 The `parse_str` benchmark is 2x, and `to_string` is 1.5x.
 
+The `new_v1` costs are similar, but `yauuid`'s version is easy to use.
+No time parameters required. It has been included in `yauuid::Context` struct.
+
+The `new_v3`, `new_v4`, `new_v5` benchmark `md5`, `RNG`, `sha1` performance instead.
+
 Run `cargo bench` to get the benchmark result.
 
 See `benches/bench.rs` for benchmark cases detail.
