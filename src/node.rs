@@ -36,7 +36,7 @@ impl Node {
         Node(node)
     }
 
-    pub fn id(&self) -> [u8; 6] {
+    pub fn id(self) -> [u8; 6] {
         self.0
     }
 }
