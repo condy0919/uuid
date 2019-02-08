@@ -82,9 +82,9 @@ impl Uuid {
     ///
     /// let mut ctx = Context::new();
     /// let node = Node::new("lo");
-    /// let u = Uuid::new_v1(&mut ctx, &node);
+    /// let u = Uuid::new_v1(&mut ctx, node);
     /// ```
-    pub fn new_v1<T: TimeClockSequence>(ctx: &mut T, node: &Node) -> Uuid {
+    pub fn new_v1<T: TimeClockSequence>(ctx: &mut T, node: Node) -> Uuid {
         let mut uuid: [u8; 16] = Default::default();
 
         let (now, seq) = ctx.gen();
@@ -110,11 +110,11 @@ mod tests {
         let mut ctx = Context::new();
         let node = Node::new("lo");
 
-        let u1 = Uuid::new_v1(&mut ctx, &node);
+        let u1 = Uuid::new_v1(&mut ctx, node);
         assert_eq!(u1.version(), Version(1));
         assert_eq!(u1.variant(), Variant::RFC4122);
 
-        let u2 = Uuid::new_v1(&mut ctx, &node);
+        let u2 = Uuid::new_v1(&mut ctx, node);
         assert_eq!(u2.version(), Version(1));
         assert_eq!(u2.variant(), Variant::RFC4122);
 

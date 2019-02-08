@@ -23,7 +23,7 @@ impl Uuid {
     /// let mut ctx = Context::new();
     /// let node = Node::new("lo");
     ///
-    /// let u1 = Uuid::new_v1(&mut ctx, &node);
+    /// let u1 = Uuid::new_v1(&mut ctx, node);
     ///
     /// let u = Uuid::new_v2(&u1, Domain::Person, 42);
     /// ```
@@ -60,7 +60,7 @@ mod tests {
         let mut cntx = Context::new();
         let node = Node::new("lo");
 
-        let u_v1 = Uuid::new_v1(&mut cntx, &node);
+        let u_v1 = Uuid::new_v1(&mut cntx, node);
 
         let u = Uuid::new_v2(&u_v1, Domain::Person, 12345678);
         assert_eq!(u.version(), Version(2));
