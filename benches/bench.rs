@@ -49,7 +49,7 @@ fn benchmark_yauuid_new_v1(c: &mut Criterion) {
             let mut ctx = yauuid::Context::new();
             let node = yauuid::Node::new("lo");
 
-            let u = Uuid::new_v1(&mut ctx, &node);
+            let u = Uuid::new_v1(&mut ctx, node);
             assert_eq!(u.version(), yauuid::Version(1));
             assert_eq!(u.variant(), yauuid::Variant::RFC4122);
         })
