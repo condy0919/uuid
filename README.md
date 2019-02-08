@@ -1,9 +1,13 @@
 [![CircleCI](https://circleci.com/gh/condy0919/uuid.svg?style=svg)](https://circleci.com/gh/condy0919/uuid)
+[![Latest Version](https://img.shields.io/crates/v/yauuid.svg)](https://crates.io/crates/yauuid)
+![Minimum rustc version](https://img.shields.io/badge/rustc-1.31.0+-yellow.svg)
 
 # yauuid
 
 The uuid crate generates and parse UUIDs based on [RFC 4122](http://tools.ietf.org/html/rfc4122)
 and DCE 1.1: Authentication and Security Services.
+
+[Documentation](https://docs.rs/yauuid)
 
 ## Usage
 
