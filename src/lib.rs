@@ -120,7 +120,7 @@ impl FromStr for Uuid {
 impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let xs = &self.0;
-        let from_digit = |u: u8| char::from_digit(u as u32, 16).unwrap() as u8;
+        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
 
         let mut bs: [u8; 36] = [b'-'; 36];
         bs[0] = from_digit((xs[0] & 0xf0) >> 4);

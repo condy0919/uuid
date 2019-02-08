@@ -16,6 +16,7 @@ const g1582: u64 = epoch * 86400;
 const g1582ns100: u64 = g1582 * 1000000;
 
 /// A stateful context for the v1 generator
+#[derive(Default)]
 pub struct Context {
     last_time: u64,
     clock_seq: u16,
@@ -32,10 +33,7 @@ pub trait TimeClockSequence {
 impl Context {
     /// Creates a default context to help ensure uniqueness
     pub fn new() -> Self {
-        Context {
-            last_time: 0,
-            clock_seq: 0,
-        }
+        Default::default()
     }
 }
 
@@ -51,7 +49,7 @@ impl TimeClockSequence for Context {
 
             rng.fill_bytes(&mut bs);
 
-            self.clock_seq = ((((bs[0] as u16) << 8) | bs[1] as u16) & 0x3fff) | 0x8000; // Variant::RFC4122
+            self.clock_seq = (((u16::from(bs[0]) << 8) | u16::from(bs[1])) & 0x3fff) | 0x8000; // Variant::RFC4122
         }
 
         let now = since_the_epoch.as_secs() * 10000000
@@ -82,9 +80,9 @@ impl Uuid {
     ///
     /// let mut ctx = Context::new();
     /// let node = Node::new("lo");
-    /// let u = Uuid::new_v1(&mut ctx, &node);
+    /// let u = Uuid::new_v1(&mut ctx, node);
     /// ```
-    pub fn new_v1<T: TimeClockSequence>(ctx: &mut T, node: &Node) -> Uuid {
+    pub fn new_v1<T: TimeClockSequence>(ctx: &mut T, node: Node) -> Uuid {
         let mut uuid: [u8; 16] = Default::default();
 
         let (now, seq) = ctx.gen();
@@ -110,11 +108,11 @@ mod tests {
         let mut ctx = Context::new();
         let node = Node::new("lo");
 
-        let u1 = Uuid::new_v1(&mut ctx, &node);
+        let u1 = Uuid::new_v1(&mut ctx, node);
         assert_eq!(u1.version(), Version(1));
         assert_eq!(u1.variant(), Variant::RFC4122);
 
-        let u2 = Uuid::new_v1(&mut ctx, &node);
+        let u2 = Uuid::new_v1(&mut ctx, node);
         assert_eq!(u2.version(), Version(1));
         assert_eq!(u2.variant(), Variant::RFC4122);
 
