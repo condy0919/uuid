@@ -119,6 +119,59 @@ impl FromStr for Uuid {
 
 impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.to_hyphenated_array()))
+        }
+    }
+}
+
+impl default::Default for Uuid {
+    fn default() -> Self {
+        Uuid::nil()
+    }
+}
+
+impl Uuid {
+    /// namespace for Domain Name System (DNS)
+    pub const NAMESPACE_DNS: Self = Self([0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    /// namespace for Uniform Resource Location (URLs)
+    pub const NAMESPACE_URL: Self = Self([0x6b, 0xa7, 0xb8, 0x11, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    /// namespace for ISO Object Identifiers (OIDs)
+    pub const NAMESPACE_OID: Self = Self([0x6b, 0xa7, 0xb8, 0x12, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    /// namespace for X.500 Distinguished Names (DNs)
+    pub const NAMESPACE_X500: Self = Self([0x6b, 0xa7, 0xb8, 0x14, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+
+    /// The nil UUID.
+    ///
+    /// The nil UUID is special form of UUID
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use yauuid::Uuid;
+    ///
+    /// let u = Uuid::nil();
+    ///
+    /// assert_eq!(u.to_string(), "00000000-0000-0000-0000-000000000000");
+    /// ```
+    pub fn nil() -> Self {
+        Uuid([0; 16])
+    }
+
+    /// Creates a hyphenated format instance from Uuid
+    pub fn to_hyphenated(self) -> Hyphenated {
+        Hyphenated(self)
+    }
+
+    /// Creates a hyphenated format reference instance from Uuid
+    pub fn to_hyphenated_ref(&self) -> HyphenatedRef {
+        HyphenatedRef(self)
+    }
+
+    #[doc(hidden)]
+    fn to_hyphenated_array(&self) -> [u8; 36] {
         let xs = &self.0;
         let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
 
@@ -160,45 +213,122 @@ impl fmt::Display for Uuid {
         bs[34] = from_digit((xs[15] & 0xf0) >> 4);
         bs[35] = from_digit((xs[15] & 0x0f) >> 0);
 
-        unsafe {
-            f.write_str(from_utf8_unchecked(&bs))
-        }
+        bs
     }
-}
 
-impl default::Default for Uuid {
-    fn default() -> Self {
-        Uuid::nil()
+    /// Creates a simple format instance from Uuid
+    pub fn to_simple(self) -> Simple {
+        Simple(self)
     }
-}
 
-impl Uuid {
-    /// namespace for Domain Name System (DNS)
-    pub const NAMESPACE_DNS: Self = Self([0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
-    /// namespace for Uniform Resource Location (URLs)
-    pub const NAMESPACE_URL: Self = Self([0x6b, 0xa7, 0xb8, 0x11, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
-    /// namespace for ISO Object Identifiers (OIDs)
-    pub const NAMESPACE_OID: Self = Self([0x6b, 0xa7, 0xb8, 0x12, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
-    /// namespace for X.500 Distinguished Names (DNs)
-    pub const NAMESPACE_X500: Self = Self([0x6b, 0xa7, 0xb8, 0x14, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8]);
+    /// Creates a simple format reference instance from Uuid
+    pub fn to_simple_ref(&self) -> SimpleRef {
+        SimpleRef(self)
+    }
 
-    /// The nil UUID.
-    ///
-    /// The nil UUID is special form of UUID
-    ///
-    /// # Example
-    ///
-    /// Basic usage:
-    ///
-    /// ```
-    /// use yauuid::Uuid;
-    ///
-    /// let u = Uuid::nil();
-    ///
-    /// assert_eq!(u.to_string(), "00000000-0000-0000-0000-000000000000");
-    /// ```
-    pub fn nil() -> Self {
-        Uuid([0; 16])
+    #[doc(hidden)]
+    fn to_simple_array(&self) -> [u8; 32] {
+        let xs = &self.0;
+        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
+
+        let mut bs: [u8; 32] = Default::default();
+        bs[0] = from_digit((xs[0] & 0xf0) >> 4);
+        bs[1] = from_digit((xs[0] & 0x0f) >> 0);
+        bs[2] = from_digit((xs[1] & 0xf0) >> 4);
+        bs[3] = from_digit((xs[1] & 0x0f) >> 0);
+        bs[4] = from_digit((xs[2] & 0xf0) >> 4);
+        bs[5] = from_digit((xs[2] & 0x0f) >> 0);
+        bs[6] = from_digit((xs[3] & 0xf0) >> 4);
+        bs[7] = from_digit((xs[3] & 0x0f) >> 0);
+
+        bs[8] = from_digit((xs[4] & 0xf0) >> 4);
+        bs[9] = from_digit((xs[4] & 0x0f) >> 0);
+        bs[10] = from_digit((xs[5] & 0xf0) >> 4);
+        bs[11] = from_digit((xs[5] & 0x0f) >> 0);
+
+        bs[12] = from_digit((xs[6] & 0xf0) >> 4);
+        bs[13] = from_digit((xs[6] & 0x0f) >> 0);
+        bs[14] = from_digit((xs[7] & 0xf0) >> 4);
+        bs[15] = from_digit((xs[7] & 0x0f) >> 0);
+
+        bs[16] = from_digit((xs[8] & 0xf0) >> 4);
+        bs[17] = from_digit((xs[8] & 0x0f) >> 0);
+        bs[18] = from_digit((xs[9] & 0xf0) >> 4);
+        bs[19] = from_digit((xs[9] & 0x0f) >> 0);
+
+        bs[20] = from_digit((xs[10] & 0xf0) >> 4);
+        bs[21] = from_digit((xs[10] & 0x0f) >> 0);
+        bs[22] = from_digit((xs[11] & 0xf0) >> 4);
+        bs[23] = from_digit((xs[11] & 0x0f) >> 0);
+        bs[24] = from_digit((xs[12] & 0xf0) >> 4);
+        bs[25] = from_digit((xs[12] & 0x0f) >> 0);
+        bs[26] = from_digit((xs[13] & 0xf0) >> 4);
+        bs[27] = from_digit((xs[13] & 0x0f) >> 0);
+        bs[28] = from_digit((xs[14] & 0xf0) >> 4);
+        bs[29] = from_digit((xs[14] & 0x0f) >> 0);
+        bs[30] = from_digit((xs[15] & 0xf0) >> 4);
+        bs[31] = from_digit((xs[15] & 0x0f) >> 0);
+
+        bs
+
+    }
+
+    /// Creates a urn format instance from Uuid
+    pub fn to_urn(self) -> Urn {
+        Urn(self)
+    }
+
+    /// Creates a urn format reference instance from Uuid
+    pub fn to_urn_ref(&self) -> UrnRef {
+        UrnRef(self)
+    }
+
+    #[doc(hidden)]
+    fn to_urn_array(&self) -> [u8; 45] {
+        let xs = &self.0;
+        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
+
+        let mut bs: [u8; 45] = [b'-'; 45];
+        bs[0..=8].copy_from_slice(b"urn:uuid:");
+
+        bs[9] = from_digit((xs[0] & 0xf0) >> 4);
+        bs[10] = from_digit((xs[0] & 0x0f) >> 0);
+        bs[11] = from_digit((xs[1] & 0xf0) >> 4);
+        bs[12] = from_digit((xs[1] & 0x0f) >> 0);
+        bs[13] = from_digit((xs[2] & 0xf0) >> 4);
+        bs[14] = from_digit((xs[2] & 0x0f) >> 0);
+        bs[15] = from_digit((xs[3] & 0xf0) >> 4);
+        bs[16] = from_digit((xs[3] & 0x0f) >> 0);
+
+        bs[18] = from_digit((xs[4] & 0xf0) >> 4);
+        bs[19] = from_digit((xs[4] & 0x0f) >> 0);
+        bs[20] = from_digit((xs[5] & 0xf0) >> 4);
+        bs[21] = from_digit((xs[5] & 0x0f) >> 0);
+
+        bs[23] = from_digit((xs[6] & 0xf0) >> 4);
+        bs[24] = from_digit((xs[6] & 0x0f) >> 0);
+        bs[25] = from_digit((xs[7] & 0xf0) >> 4);
+        bs[26] = from_digit((xs[7] & 0x0f) >> 0);
+
+        bs[28] = from_digit((xs[8] & 0xf0) >> 4);
+        bs[29] = from_digit((xs[8] & 0x0f) >> 0);
+        bs[30] = from_digit((xs[9] & 0xf0) >> 4);
+        bs[31] = from_digit((xs[9] & 0x0f) >> 0);
+
+        bs[33] = from_digit((xs[10] & 0xf0) >> 4);
+        bs[34] = from_digit((xs[10] & 0x0f) >> 0);
+        bs[35] = from_digit((xs[11] & 0xf0) >> 4);
+        bs[36] = from_digit((xs[11] & 0x0f) >> 0);
+        bs[37] = from_digit((xs[12] & 0xf0) >> 4);
+        bs[38] = from_digit((xs[12] & 0x0f) >> 0);
+        bs[39] = from_digit((xs[13] & 0xf0) >> 4);
+        bs[40] = from_digit((xs[13] & 0x0f) >> 0);
+        bs[41] = from_digit((xs[14] & 0xf0) >> 4);
+        bs[42] = from_digit((xs[14] & 0x0f) >> 0);
+        bs[43] = from_digit((xs[15] & 0xf0) >> 4);
+        bs[44] = from_digit((xs[15] & 0x0f) >> 0);
+
+        bs
     }
 
     /// Returns the variant of the UUID.
@@ -270,6 +400,79 @@ impl error::Error for InvalidUuid {
     }
 }
 
+/// A hyphenated format of Uuid which takes ownership of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Hyphenated(Uuid);
+
+impl fmt::Display for Hyphenated {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_hyphenated_array()))
+        }
+    }
+}
+
+/// A hyphenated format of Uuid which takes reference of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct HyphenatedRef<'a>(&'a Uuid);
+
+impl<'a> fmt::Display for HyphenatedRef<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_hyphenated_array()))
+        }
+    }
+}
+
+/// A simple format of Uuid which takes ownership of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Simple(Uuid);
+
+impl fmt::Display for Simple {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_simple_array()))
+        }
+    }
+}
+
+/// A simple format of Uuid which takes reference of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct SimpleRef<'a>(&'a Uuid);
+
+impl<'a> fmt::Display for SimpleRef<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_simple_array()))
+        }
+    }
+}
+
+/// A urn format of Uuid which takes ownership of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Urn(Uuid);
+
+impl fmt::Display for Urn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_urn_array()))
+        }
+    }
+}
+
+/// A urn format of Uuid which takes reference of Uuid
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct UrnRef<'a>(&'a Uuid);
+
+impl<'a> fmt::Display for UrnRef<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            f.write_str(from_utf8_unchecked(&self.0.to_urn_array()))
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -295,6 +498,18 @@ mod tests {
     #[test]
     fn test_variant() {
         assert_eq!(Uuid::NAMESPACE_DNS.variant(), Variant::RFC4122);
+    }
+
+    #[test]
+    fn test_format() {
+        assert_eq!(Uuid::NAMESPACE_DNS.to_hyphenated().to_string(), "6ba7b810-9dad-11d1-80b4-00c04fd430c8");
+        assert_eq!(Uuid::NAMESPACE_DNS.to_hyphenated_ref().to_string(), "6ba7b810-9dad-11d1-80b4-00c04fd430c8");
+
+        assert_eq!(Uuid::NAMESPACE_DNS.to_simple().to_string(), "6ba7b8109dad11d180b400c04fd430c8");
+        assert_eq!(Uuid::NAMESPACE_DNS.to_simple_ref().to_string(), "6ba7b8109dad11d180b400c04fd430c8");
+
+        assert_eq!(Uuid::NAMESPACE_DNS.to_urn().to_string(), "urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8");
+        assert_eq!(Uuid::NAMESPACE_DNS.to_urn_ref().to_string(), "urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8");
     }
 
     static TESTS: &'static [(&'static str, Version, Variant, bool)] = &[
