@@ -151,6 +151,7 @@ impl fmt::Display for Uuid {
 }
 
 impl default::Default for Uuid {
+    #[inline]
     fn default() -> Self {
         Uuid::nil()
     }
@@ -181,41 +182,49 @@ impl Uuid {
     ///
     /// assert_eq!(u.to_string(), "00000000-0000-0000-0000-000000000000");
     /// ```
+    #[inline]
     pub fn nil() -> Self {
         Uuid([0; 16])
     }
 
     /// Creates a hyphenated format instance from Uuid
+    #[inline]
     pub fn to_hyphenated(self) -> Hyphenated {
         Hyphenated(self)
     }
 
     /// Creates a hyphenated format reference instance from Uuid
+    #[inline]
     pub fn to_hyphenated_ref(&self) -> HyphenatedRef {
         HyphenatedRef(self)
     }
 
     /// Creates a simple format instance from Uuid
+    #[inline]
     pub fn to_simple(self) -> Simple {
         Simple(self)
     }
 
     /// Creates a simple format reference instance from Uuid
+    #[inline]
     pub fn to_simple_ref(&self) -> SimpleRef {
         SimpleRef(self)
     }
 
     /// Creates a urn format instance from Uuid
+    #[inline]
     pub fn to_urn(self) -> Urn {
         Urn(self)
     }
 
     /// Creates a urn format reference instance from Uuid
+    #[inline]
     pub fn to_urn_ref(&self) -> UrnRef {
         UrnRef(self)
     }
 
     /// Returns the variant of the UUID.
+    #[inline]
     pub fn variant(&self) -> Variant {
         let v = self.0[8];
 
@@ -230,16 +239,19 @@ impl Uuid {
     }
 
     /// Returns the version of the UUID.
+    #[inline]
     pub fn version(&self) -> Version {
         Version(self.0[6] >> 4)
     }
 
     /// Returns an array of 16 bytes containing the UUID.
+    #[inline]
     pub fn as_bytes(&self) -> [u8; 16] {
         self.0
     }
 
     /// Creates a UUID by a 16 bytes array
+    #[inline]
     pub fn from_bytes(xs: [u8; 16]) -> Self {
         Uuid(xs)
     }
