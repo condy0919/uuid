@@ -39,6 +39,24 @@ pub mod v5;
 mod util;
 use util::xtob;
 
+#[allow(non_upper_case_globals)]
+const from_digit: fn(u8) -> u8 = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
+
+macro_rules! format_uuid {
+    ($out:ident, $in:ident, $idx:expr, $pos1:expr, $pos2:expr) => {
+        $out[$pos1] = from_digit(($in[$idx] & 0xf0) >> 4);
+        $out[$pos2] = from_digit(($in[$idx] & 0x0f) >> 0);
+    };
+
+    ($out:ident, $in:ident, $idx:expr, $pos1:expr, $pos2:expr, $($pos:expr),*) => {
+        $out[$pos1] = from_digit(($in[$idx] & 0xf0) >> 4);
+        $out[$pos2] = from_digit(($in[$idx] & 0x0f) >> 0);
+
+        format_uuid!($out, $in, $idx + 1, $($pos),*);
+    }
+}
+
+
 /// A UUID represented by a 16 bytes array
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Uuid([u8; 16]);
@@ -119,8 +137,15 @@ impl FromStr for Uuid {
 
 impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let xs = &self.0;
+
+        let mut bs: [u8; 36] = [b'-'; 36];
+        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15,
+                                16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29,
+                                30, 31, 32, 33, 34, 35);
+
         unsafe {
-            f.write_str(from_utf8_unchecked(&self.to_hyphenated_array()))
+            f.write_str(from_utf8_unchecked(&bs))
         }
     }
 }
@@ -170,52 +195,6 @@ impl Uuid {
         HyphenatedRef(self)
     }
 
-    #[doc(hidden)]
-    fn to_hyphenated_array(&self) -> [u8; 36] {
-        let xs = &self.0;
-        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
-
-        let mut bs: [u8; 36] = [b'-'; 36];
-        bs[0] = from_digit((xs[0] & 0xf0) >> 4);
-        bs[1] = from_digit((xs[0] & 0x0f) >> 0);
-        bs[2] = from_digit((xs[1] & 0xf0) >> 4);
-        bs[3] = from_digit((xs[1] & 0x0f) >> 0);
-        bs[4] = from_digit((xs[2] & 0xf0) >> 4);
-        bs[5] = from_digit((xs[2] & 0x0f) >> 0);
-        bs[6] = from_digit((xs[3] & 0xf0) >> 4);
-        bs[7] = from_digit((xs[3] & 0x0f) >> 0);
-
-        bs[9] = from_digit((xs[4] & 0xf0) >> 4);
-        bs[10] = from_digit((xs[4] & 0x0f) >> 0);
-        bs[11] = from_digit((xs[5] & 0xf0) >> 4);
-        bs[12] = from_digit((xs[5] & 0x0f) >> 0);
-
-        bs[14] = from_digit((xs[6] & 0xf0) >> 4);
-        bs[15] = from_digit((xs[6] & 0x0f) >> 0);
-        bs[16] = from_digit((xs[7] & 0xf0) >> 4);
-        bs[17] = from_digit((xs[7] & 0x0f) >> 0);
-
-        bs[19] = from_digit((xs[8] & 0xf0) >> 4);
-        bs[20] = from_digit((xs[8] & 0x0f) >> 0);
-        bs[21] = from_digit((xs[9] & 0xf0) >> 4);
-        bs[22] = from_digit((xs[9] & 0x0f) >> 0);
-
-        bs[24] = from_digit((xs[10] & 0xf0) >> 4);
-        bs[25] = from_digit((xs[10] & 0x0f) >> 0);
-        bs[26] = from_digit((xs[11] & 0xf0) >> 4);
-        bs[27] = from_digit((xs[11] & 0x0f) >> 0);
-        bs[28] = from_digit((xs[12] & 0xf0) >> 4);
-        bs[29] = from_digit((xs[12] & 0x0f) >> 0);
-        bs[30] = from_digit((xs[13] & 0xf0) >> 4);
-        bs[31] = from_digit((xs[13] & 0x0f) >> 0);
-        bs[32] = from_digit((xs[14] & 0xf0) >> 4);
-        bs[33] = from_digit((xs[14] & 0x0f) >> 0);
-        bs[34] = from_digit((xs[15] & 0xf0) >> 4);
-        bs[35] = from_digit((xs[15] & 0x0f) >> 0);
-
-        bs
-    }
-
     /// Creates a simple format instance from Uuid
     pub fn to_simple(self) -> Simple {
         Simple(self)
@@ -226,53 +205,6 @@ impl Uuid {
         SimpleRef(self)
     }
 
-    #[doc(hidden)]
-    fn to_simple_array(&self) -> [u8; 32] {
-        let xs = &self.0;
-        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
-
-        let mut bs: [u8; 32] = Default::default();
-        bs[0] = from_digit((xs[0] & 0xf0) >> 4);
-        bs[1] = from_digit((xs[0] & 0x0f) >> 0);
-        bs[2] = from_digit((xs[1] & 0xf0) >> 4);
-        bs[3] = from_digit((xs[1] & 0x0f) >> 0);
-        bs[4] = from_digit((xs[2] & 0xf0) >> 4);
-        bs[5] = from_digit((xs[2] & 0x0f) >> 0);
-        bs[6] = from_digit((xs[3] & 0xf0) >> 4);
-        bs[7] = from_digit((xs[3] & 0x0f) >> 0);
-
-        bs[8] = from_digit((xs[4] & 0xf0) >> 4);
-        bs[9] = from_digit((xs[4] & 0x0f) >> 0);
-        bs[10] = from_digit((xs[5] & 0xf0) >> 4);
-        bs[11] = from_digit((xs[5] & 0x0f) >> 0);
-
-        bs[12] = from_digit((xs[6] & 0xf0) >> 4);
-        bs[13] = from_digit((xs[6] & 0x0f) >> 0);
-        bs[14] = from_digit((xs[7] & 0xf0) >> 4);
-        bs[15] = from_digit((xs[7] & 0x0f) >> 0);
-
-        bs[16] = from_digit((xs[8] & 0xf0) >> 4);
-        bs[17] = from_digit((xs[8] & 0x0f) >> 0);
-        bs[18] = from_digit((xs[9] & 0xf0) >> 4);
-        bs[19] = from_digit((xs[9] & 0x0f) >> 0);
-
-        bs[20] = from_digit((xs[10] & 0xf0) >> 4);
-        bs[21] = from_digit((xs[10] & 0x0f) >> 0);
-        bs[22] = from_digit((xs[11] & 0xf0) >> 4);
-        bs[23] = from_digit((xs[11] & 0x0f) >> 0);
-        bs[24] = from_digit((xs[12] & 0xf0) >> 4);
-        bs[25] = from_digit((xs[12] & 0x0f) >> 0);
-        bs[26] = from_digit((xs[13] & 0xf0) >> 4);
-        bs[27] = from_digit((xs[13] & 0x0f) >> 0);
-        bs[28] = from_digit((xs[14] & 0xf0) >> 4);
-        bs[29] = from_digit((xs[14] & 0x0f) >> 0);
-        bs[30] = from_digit((xs[15] & 0xf0) >> 4);
-        bs[31] = from_digit((xs[15] & 0x0f) >> 0);
-
-        bs
-
-    }
-
     /// Creates a urn format instance from Uuid
     pub fn to_urn(self) -> Urn {
         Urn(self)
@@ -281,54 +213,6 @@ impl Uuid {
     /// Creates a urn format reference instance from Uuid
     pub fn to_urn_ref(&self) -> UrnRef {
         UrnRef(self)
-    }
-
-    #[doc(hidden)]
-    fn to_urn_array(&self) -> [u8; 45] {
-        let xs = &self.0;
-        let from_digit = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
-
-        let mut bs: [u8; 45] = [b'-'; 45];
-        bs[0..=8].copy_from_slice(b"urn:uuid:");
-
-        bs[9] = from_digit((xs[0] & 0xf0) >> 4);
-        bs[10] = from_digit((xs[0] & 0x0f) >> 0);
-        bs[11] = from_digit((xs[1] & 0xf0) >> 4);
-        bs[12] = from_digit((xs[1] & 0x0f) >> 0);
-        bs[13] = from_digit((xs[2] & 0xf0) >> 4);
-        bs[14] = from_digit((xs[2] & 0x0f) >> 0);
-        bs[15] = from_digit((xs[3] & 0xf0) >> 4);
-        bs[16] = from_digit((xs[3] & 0x0f) >> 0);
-
-        bs[18] = from_digit((xs[4] & 0xf0) >> 4);
-        bs[19] = from_digit((xs[4] & 0x0f) >> 0);
-        bs[20] = from_digit((xs[5] & 0xf0) >> 4);
-        bs[21] = from_digit((xs[5] & 0x0f) >> 0);
-
-        bs[23] = from_digit((xs[6] & 0xf0) >> 4);
-        bs[24] = from_digit((xs[6] & 0x0f) >> 0);
-        bs[25] = from_digit((xs[7] & 0xf0) >> 4);
-        bs[26] = from_digit((xs[7] & 0x0f) >> 0);
-
-        bs[28] = from_digit((xs[8] & 0xf0) >> 4);
-        bs[29] = from_digit((xs[8] & 0x0f) >> 0);
-        bs[30] = from_digit((xs[9] & 0xf0) >> 4);
-        bs[31] = from_digit((xs[9] & 0x0f) >> 0);
-
-        bs[33] = from_digit((xs[10] & 0xf0) >> 4);
-        bs[34] = from_digit((xs[10] & 0x0f) >> 0);
-        bs[35] = from_digit((xs[11] & 0xf0) >> 4);
-        bs[36] = from_digit((xs[11] & 0x0f) >> 0);
-        bs[37] = from_digit((xs[12] & 0xf0) >> 4);
-        bs[38] = from_digit((xs[12] & 0x0f) >> 0);
-        bs[39] = from_digit((xs[13] & 0xf0) >> 4);
-        bs[40] = from_digit((xs[13] & 0x0f) >> 0);
-        bs[41] = from_digit((xs[14] & 0xf0) >> 4);
-        bs[42] = from_digit((xs[14] & 0x0f) >> 0);
-        bs[43] = from_digit((xs[15] & 0xf0) >> 4);
-        bs[44] = from_digit((xs[15] & 0x0f) >> 0);
-
-        bs
     }
 
     /// Returns the variant of the UUID.
@@ -363,19 +247,21 @@ impl Uuid {
 
 impl fmt::Display for Variant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Variant::Invalid => write!(f, "Invalid"),
-            Variant::RFC4122 => write!(f, "RFC4122"),
-            Variant::Reserved => write!(f, "Reserved"),
-            Variant::Microsoft => write!(f, "Microsoft"),
-            Variant::Future => write!(f, "Future"),
-        }
+        let s = match self {
+            Variant::Invalid => "Invalid",
+            Variant::RFC4122 => "RFC4122",
+            Variant::Reserved => "Reserved",
+            Variant::Microsoft => "Microsoft",
+            Variant::Future => "Future",
+        };
+
+        f.write_str(s)
     }
 }
 
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut desc: [u8; 9] = [b'V', b'E', b'R', b'S', b'I', b'O', b'N', b'_', b'0'];
+        let mut desc: [u8; 9] = *b"VERSION_0";
         desc[8] += self.0;
 
         unsafe {
@@ -406,9 +292,9 @@ pub struct Hyphenated(Uuid);
 
 impl fmt::Display for Hyphenated {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_hyphenated_array()))
-        }
+        let uuid = &self.0;
+
+        uuid.to_hyphenated_ref().fmt(f)
     }
 }
 
@@ -418,8 +304,17 @@ pub struct HyphenatedRef<'a>(&'a Uuid);
 
 impl<'a> fmt::Display for HyphenatedRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let xs = &(self.0).0;
+
+        let mut bs: [u8; 36] = [b'-'; 36];
+        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
+                                9, 10, 11, 12,
+                                14, 15, 16, 17,
+                                19, 20, 21, 22,
+                                24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35);
+
         unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_hyphenated_array()))
+            f.write_str(from_utf8_unchecked(&bs))
         }
     }
 }
@@ -430,9 +325,9 @@ pub struct Simple(Uuid);
 
 impl fmt::Display for Simple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_simple_array()))
-        }
+        let uuid = &self.0;
+
+        uuid.to_simple_ref().fmt(f)
     }
 }
 
@@ -442,8 +337,17 @@ pub struct SimpleRef<'a>(&'a Uuid);
 
 impl<'a> fmt::Display for SimpleRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let xs = &(self.0).0;
+
+        let mut bs: [u8; 32] = Default::default();
+        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
+                                8, 9, 10, 11,
+                                12, 13, 14, 15,
+                                16, 17, 18, 19,
+                                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
+
         unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_simple_array()))
+            f.write_str(from_utf8_unchecked(&bs))
         }
     }
 }
@@ -454,9 +358,9 @@ pub struct Urn(Uuid);
 
 impl fmt::Display for Urn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_urn_array()))
-        }
+        let uuid = &self.0;
+
+        uuid.to_urn_ref().fmt(f)
     }
 }
 
@@ -466,8 +370,18 @@ pub struct UrnRef<'a>(&'a Uuid);
 
 impl<'a> fmt::Display for UrnRef<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let xs = &(self.0).0;
+
+        let mut bs: [u8; 45] = [b'-'; 45];
+        bs[0..=8].copy_from_slice(b"urn:uuid:");
+        format_uuid!(bs, xs, 0, 9, 10, 11, 12, 13, 14, 15, 16,
+                                18, 19, 20, 21,
+                                23, 24, 25, 26,
+                                28, 29, 30, 31,
+                                33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44);
+
         unsafe {
-            f.write_str(from_utf8_unchecked(&self.0.to_urn_array()))
+            f.write_str(from_utf8_unchecked(&bs))
         }
     }
 }
