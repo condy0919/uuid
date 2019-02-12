@@ -1,3 +1,5 @@
+//! The implementation for Version 2 UUIDs which is based on Version 1 UUID.
+
 use super::*;
 use libc;
 

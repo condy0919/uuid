@@ -1,3 +1,5 @@
+//! The implementation for Version 4 UUIDs which produces a random UUID.
+
 use super::*;
 use rand::{self, RngCore};
 

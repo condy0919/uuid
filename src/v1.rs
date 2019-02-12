@@ -32,6 +32,7 @@ pub trait TimeClockSequence {
 
 impl Context {
     /// Creates a default context to help ensure uniqueness
+    #[inline]
     pub fn new() -> Self {
         Default::default()
     }

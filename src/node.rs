@@ -1,3 +1,5 @@
+//! NodeID represent a MAC address.
+
 use std::convert::From;
 use std::fs;
 use std::path::Path;

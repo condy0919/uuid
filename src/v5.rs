@@ -1,3 +1,5 @@
+//! The implementation for Version 5 UUIDs by Sha1 hashing.
+
 use super::*;
 use sha1::{Sha1, Digest};
 

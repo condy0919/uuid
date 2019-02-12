@@ -1,3 +1,5 @@
+//! The implementation for Version 3 UUIDs by Md5 hashing.
+
 use super::*;
 use md5::{Md5, Digest};
 
