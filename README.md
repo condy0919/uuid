@@ -15,7 +15,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [denpendencies]
-yauuid = "0.1"
+yauuid = "0.2"
 ```
 
 and this to your crate root:
