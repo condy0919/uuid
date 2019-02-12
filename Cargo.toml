@@ -1,12 +1,16 @@
 [package]
 name = "yauuid"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["condy <condy0919@gmail.com>"]
 description = "Yet another library to generate and parse UUIDs"
 license = "MIT"
 readme = "README.md"
 edition = "2018"
 repository = "https://github.com/condy0919/uuid"
+documentation = "https://docs.rs/yauuid"
+exclude = [
+    ".circleci/*"
+]
 
 [dependencies]
 md-5 = "0.8.0"
