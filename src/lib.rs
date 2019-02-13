@@ -1,4 +1,4 @@
-// Copyright 2018 condy0919 [at] gmail [dot] com
+// Copyright 2018-Present condy0919 [at] gmail [dot] com
 
 //! Generate and parse UUIDs.
 //!
