@@ -4,10 +4,15 @@ use std::convert::From;
 use std::fs;
 use std::path::Path;
 use std::fmt;
+use std::str::from_utf8_unchecked;
 
 #[path = "util.rs"]
 mod util;
 use util::xtob;
+
+#[path = "macros.rs"]
+#[macro_use]
+mod macros;
 
 /// An IEEE 802 MAC address
 #[derive(Debug, Clone, Copy)]
@@ -46,8 +51,18 @@ impl Node {
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let xs = self.0;
-        write!(f, "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-                   xs[0], xs[1], xs[2], xs[3], xs[4], xs[5])
+
+        let mut bs: [u8; 17] = [b':'; 17];
+        bytes_format!(bs, xs, 0, 0, 1,
+                                 3, 4,
+                                 6, 7,
+                                 9, 10,
+                                 12, 13,
+                                 15, 16);
+
+        unsafe {
+            f.write_str(from_utf8_unchecked(&bs))
+        }
     }
 }
 
@@ -59,5 +74,13 @@ mod tests {
     #[cfg(target_os = "linux")]
     fn test_lo_nodeid() {
         assert_eq!(Node::new("lo").id(), [0; 6]);
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn test_to_string() {
+        let node = Node::new("lo");
+
+        assert_eq!(node.to_string(), "00:00:00:00:00:00");
     }
 }
