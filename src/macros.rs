@@ -6,7 +6,7 @@ pub fn __private_from_digit(u: u8) -> u8 {
     char::from_digit(u32::from(u), 16).unwrap() as u8
 }
 
-/// Fast but not fasted format for byte array 
+/// Fast but not fasted format for byte array
 #[doc(hidden)]
 #[macro_use]
 macro_rules! bytes_format {
