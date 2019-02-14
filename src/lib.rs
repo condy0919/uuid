@@ -23,7 +23,6 @@ use std::str::{FromStr, from_utf8_unchecked};
 use std::fmt;
 use std::error;
 use std::default;
-use std::char;
 
 pub mod node;
 pub use node::Node;
@@ -39,23 +38,8 @@ pub mod v5;
 mod util;
 use util::xtob;
 
-#[allow(non_upper_case_globals)]
-const from_digit: fn(u8) -> u8 = |u: u8| char::from_digit(u32::from(u), 16).unwrap() as u8;
-
-macro_rules! format_uuid {
-    ($out:ident, $in:ident, $idx:expr, $pos1:expr, $pos2:expr) => {
-        $out[$pos1] = from_digit(($in[$idx] & 0xf0) >> 4);
-        $out[$pos2] = from_digit(($in[$idx] & 0x0f) >> 0);
-    };
-
-    ($out:ident, $in:ident, $idx:expr, $pos1:expr, $pos2:expr, $($pos:expr),*) => {
-        $out[$pos1] = from_digit(($in[$idx] & 0xf0) >> 4);
-        $out[$pos2] = from_digit(($in[$idx] & 0x0f) >> 0);
-
-        format_uuid!($out, $in, $idx + 1, $($pos),*);
-    }
-}
-
+#[macro_use]
+mod macros;
 
 /// A UUID represented by a 16 bytes array
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -140,9 +124,11 @@ impl fmt::Display for Uuid {
         let xs = &self.0;
 
         let mut bs: [u8; 36] = [b'-'; 36];
-        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15,
-                                16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29,
-                                30, 31, 32, 33, 34, 35);
+        bytes_format!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
+                                 9, 10, 11, 12,
+                                 14, 15, 16, 17,
+                                 19, 20, 21, 22,
+                                 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35);
 
         unsafe {
             f.write_str(from_utf8_unchecked(&bs))
@@ -319,11 +305,11 @@ impl<'a> fmt::Display for HyphenatedRef<'a> {
         let xs = &(self.0).0;
 
         let mut bs: [u8; 36] = [b'-'; 36];
-        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
-                                9, 10, 11, 12,
-                                14, 15, 16, 17,
-                                19, 20, 21, 22,
-                                24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35);
+        bytes_format!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
+                                 9, 10, 11, 12,
+                                 14, 15, 16, 17,
+                                 19, 20, 21, 22,
+                                 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35);
 
         unsafe {
             f.write_str(from_utf8_unchecked(&bs))
@@ -352,11 +338,11 @@ impl<'a> fmt::Display for SimpleRef<'a> {
         let xs = &(self.0).0;
 
         let mut bs: [u8; 32] = Default::default();
-        format_uuid!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
-                                8, 9, 10, 11,
-                                12, 13, 14, 15,
-                                16, 17, 18, 19,
-                                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
+        bytes_format!(bs, xs, 0, 0, 1, 2, 3, 4, 5, 6, 7,
+                                 8, 9, 10, 11,
+                                 12, 13, 14, 15,
+                                 16, 17, 18, 19,
+                                 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
 
         unsafe {
             f.write_str(from_utf8_unchecked(&bs))
@@ -386,10 +372,10 @@ impl<'a> fmt::Display for UrnRef<'a> {
 
         let mut bs: [u8; 45] = [b'-'; 45];
         bs[0..=8].copy_from_slice(b"urn:uuid:");
-        format_uuid!(bs, xs, 0, 9, 10, 11, 12, 13, 14, 15, 16,
-                                18, 19, 20, 21,
-                                23, 24, 25, 26,
-                                28, 29, 30, 31,
+        bytes_format!(bs, xs, 0, 9, 10, 11, 12, 13, 14, 15, 16,
+                                 18, 19, 20, 21,
+                                 23, 24, 25, 26,
+                                 28, 29, 30, 31,
                                 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44);
 
         unsafe {
