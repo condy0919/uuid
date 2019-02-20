@@ -278,10 +278,6 @@ impl error::Error for InvalidUuid {
     fn description(&self) -> &str {
         "invalid uuid string"
     }
-
-    fn cause(&self) -> Option<&error::Error> {
-        None
-    }
 }
 
 /// A hyphenated format of Uuid which takes ownership of Uuid
